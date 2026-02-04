@@ -20,7 +20,7 @@ type NavItem = {
 const navItems: NavItem[] = [
   { label: 'แดชบอร์ด', icon: LayoutDashboard, to: '/dashboard', end: true },
   { label: 'แดชบอร์ดภาพรวม', icon: BarChart3, to: '/dashboard/overview' },
-  { label: 'รายการ', icon: ClipboardList },
+  { label: 'รายการ', icon: ClipboardList, to: '/records' },
   { label: 'การผลิต', icon: Activity },
   { label: 'คลังข้อมูล', icon: Database },
   { label: 'ตั้งค่า', icon: Settings },
