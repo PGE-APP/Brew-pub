@@ -1,6 +1,6 @@
 import { AlertCircle } from 'lucide-react'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 const alerts = [
   'เตือน : เซ็นเซอร์2 หยุดทำงาน เวลา 09.12',

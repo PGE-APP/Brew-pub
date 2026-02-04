@@ -1,11 +1,12 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Breadcrumbs } from "../components/layout/Breadcrumbs";
-import { Sidebar } from "../components/layout/Sidebar";
-import { Topbar } from "../components/layout/Topbar";
-import { Panel } from "../components/ui/panel";
-import { cn } from "../lib/utils";
+import { Breadcrumbs } from "../../components/layout/Breadcrumbs";
+import { Sidebar } from "../../components/layout/Sidebar";
+import { Topbar } from "../../components/layout/Topbar";
+import { Panel } from "../../components/ui/panel";
+import { TankGauge } from "../../components/ui/TankGauge";
+import { cn } from "../../lib/utils";
 
 type RecordData = {
   level: string;
@@ -20,7 +21,10 @@ type RecordData = {
 
 const ITEMS_PER_PAGE = 10;
 
-export function BatchLogPage() {
+/**
+ * Records list page displaying data from REST API.
+ */
+export function RecordsListPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [records, setRecords] = useState<RecordData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -28,6 +32,7 @@ export function BatchLogPage() {
   const [countdown, setCountdown] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
 
+  // Use refs to track state without triggering re-renders and avoiding stale closures in intervals
   const isFirstLoad = useRef(true);
   const lastDataStr = useRef<string>("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,6 +40,7 @@ export function BatchLogPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // Don't fetch if tab is hidden (save resources)
       if (document.hidden) return;
 
       try {
@@ -52,6 +58,7 @@ export function BatchLogPage() {
         setError(null);
       } catch (err) {
         console.error("Error fetching data:", err);
+        // Only show error if we have no data at all (first load failed)
         if (lastDataStr.current === "") {
           if (axios.isAxiosError(err)) {
             setError(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
@@ -65,30 +72,36 @@ export function BatchLogPage() {
           isFirstLoad.current = false;
         }
 
+        // Reset countdown
         setCountdown(15);
 
+        // Schedule next fetch only after current one finishes (Prevent pile-up)
         if (!document.hidden) {
-          timerRef.current = setTimeout(fetchData, 15000);
+          timerRef.current = setTimeout(fetchData, 15000); // 15 seconds
         }
       }
     };
 
+    // Initial fetch
     fetchData();
 
+    // Countdown ticker - updates every second
     const updateCountdown = () => {
       setCountdown((prev) => {
         if (prev > 0) return prev - 1;
-        return 15;
+        return 15; // Reset when reaches 0
       });
       countdownTimerRef.current = setTimeout(updateCountdown, 1000);
     };
     countdownTimerRef.current = setTimeout(updateCountdown, 1000);
 
+    // Handle visibility change to resume/pause
     const handleVisibilityChange = () => {
       if (document.hidden) {
         if (timerRef.current) clearTimeout(timerRef.current);
         if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
       } else {
+        // Resume immediately when visible
         setCountdown(15);
         fetchData();
         countdownTimerRef.current = setTimeout(updateCountdown, 1000);
@@ -105,7 +118,7 @@ export function BatchLogPage() {
   }, []);
 
   // Pagination logic
-  const totalPages = Math.ceil(records.length / ITEMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(records.length / ITEMS_PER_PAGE));
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentRecords = records.slice(startIndex, endIndex);
@@ -122,14 +135,15 @@ export function BatchLogPage() {
       ) : null}
 
       <div className={cn("min-h-screen transition-[margin] duration-300", sidebarOpen ? "lg:ml-64" : "lg:ml-0")}>
-        <Topbar title="บันทึก Batch" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+        <Topbar title="รายการข้อมูลจากเซ็นเซอร์" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
 
         <main className="space-y-6 px-6 pb-10 pt-6">
-          <Breadcrumbs items={[{ label: "รายการ" }, { label: "Batch Log" }]} />
+          <Breadcrumbs items={[{ label: "รายการ" }, { label: "ข้อมูลเซ็นเซอร์" }]} />
 
+          {/* Data Table Panel - at the top */}
           <Panel>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-ink">ประวัติ Batch การผลิต</h2>
+              <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลการตรวจวัด</h2>
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -262,6 +276,35 @@ export function BatchLogPage() {
                   </div>
                 </div>
               </>
+            )}
+          </Panel>
+
+          {/* Tank Gauges Panel - at the bottom */}
+          <Panel>
+            <div className="mb-4">
+              <h2 className="font-display text-lg font-semibold text-ink">สถานะถังเก็บ (Real-time Tank Status)</h2>
+            </div>
+
+            {!loading && !error && records.length > 0 && (
+              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+                {records.map((record, index) => {
+                  const levelValue = typeof record.level === "string" ? parseFloat(record.level) : record.level || 0;
+                  // π × r² × level(cm) / 1000 = π × 900 × level / 1000 = π × 0.9 × level (liters)
+                  const volumeLiters = Math.PI * 0.9 * levelValue;
+                  const MAX_CAPACITY_LITERS = 254;
+                  const fillPercent = (volumeLiters / MAX_CAPACITY_LITERS) * 100;
+
+                  return (
+                    <div
+                      key={`gauge-${index}`}
+                      className="flex flex-col items-center rounded-2xl border border-border/50 bg-surface/50 p-6 shadow-sm"
+                    >
+                      <TankGauge percent={fillPercent} displayValue={volumeLiters} unit="L" width={160} height={300} label={`Tank ${index + 1}`} />
+                      <p className="mt-4 text-center font-display text-base font-semibold text-ink">Tank {index + 1}</p>
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </Panel>
         </main>

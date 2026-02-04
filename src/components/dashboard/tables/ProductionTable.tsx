@@ -1,5 +1,5 @@
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 const rows = [
   { period: 'ก.ค. 2568', capacity: '7,500', volume: '4,500', total: '12,000' },

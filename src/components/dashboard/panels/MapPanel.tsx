@@ -3,8 +3,8 @@ import L from 'leaflet'
 import { renderToStaticMarkup } from 'react-dom/server'
 import { MapContainer, Marker, Popup, TileLayer } from 'react-leaflet'
 import 'leaflet/dist/leaflet.css'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 /**
  * Builds a Lucide-based Leaflet marker icon to keep iconography consistent.

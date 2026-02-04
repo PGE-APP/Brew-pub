@@ -4,8 +4,8 @@ import {
   Clock,
   FileText,
 } from 'lucide-react'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 const records = [
   {
