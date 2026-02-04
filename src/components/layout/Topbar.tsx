@@ -1,16 +1,18 @@
-import { Bell, Download, Menu, UserCircle2 } from 'lucide-react'
+import { Bell, Download, Menu, UserCircle2 } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
 
 export type TopbarProps = {
   /** Dashboard header title. */
-  title: string
+  title: string;
   /** Hamburger toggle callback. */
-  onMenuClick: () => void
-}
+  onMenuClick: () => void;
+};
 
 /**
  * Top navigation bar with title, quick actions, and user info.
  */
 export function Topbar({ title, onMenuClick }: TopbarProps) {
+  const { user } = useAuth();
   return (
     <header className="sticky top-0 z-30 border-b border-border/70 bg-surface/95 backdrop-blur">
       <div className="flex items-center justify-between px-6 py-4">
@@ -23,9 +25,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
           >
             <Menu className="h-5 w-5" />
           </button>
-          <h1 className="max-w-xl font-display text-base font-semibold text-ink md:text-lg">
-            {title}
-          </h1>
+          <h1 className="max-w-xl font-display text-base font-semibold text-ink md:text-lg">{title}</h1>
         </div>
         <div className="flex items-center gap-4 text-sm">
           <button
@@ -40,7 +40,7 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
             className="inline-flex items-center gap-2 rounded-full border border-border/70 px-3 py-1.5 text-ink-muted transition hover:text-ink"
           >
             <UserCircle2 className="h-5 w-5" />
-            Admin 01
+            {user?.username || "ผู้ใช้งาน"}
           </button>
           <button
             type="button"
@@ -52,5 +52,5 @@ export function Topbar({ title, onMenuClick }: TopbarProps) {
         </div>
       </div>
     </header>
-  )
+  );
 }
