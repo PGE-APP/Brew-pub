@@ -1,13 +1,13 @@
-import { ChevronRight, Home } from 'lucide-react'
+import { ChevronRight, Home } from "lucide-react";
 
 export type BreadcrumbItem = {
-  label: string
-}
+  label: string;
+};
 
 export type BreadcrumbsProps = {
   /** Ordered list of labels showing the current navigation path. */
-  items: BreadcrumbItem[]
-}
+  items: BreadcrumbItem[];
+};
 
 /**
  * Breadcrumb navigation indicator for the dashboard page.
@@ -19,11 +19,9 @@ export function Breadcrumbs({ items }: BreadcrumbsProps) {
       {items.map((item, index) => (
         <div key={`${item.label}-${index}`} className="flex items-center gap-2">
           <ChevronRight className="h-4 w-4" />
-          <span className="font-medium text-ink">
-            {item.label}
-          </span>
+          <span className="font-medium text-ink">{item.label}</span>
         </div>
       ))}
     </nav>
-  )
+  );
 }
