@@ -1,17 +1,5 @@
 import { useState } from "react";
-import {
-  Activity,
-  BarChart3,
-  ChevronDown,
-  ChevronRight,
-  ClipboardList,
-  Database,
-  LayoutDashboard,
-  LogOut,
-  Settings,
-  X,
-  FileText,
-} from "lucide-react";
+import { Activity, BarChart3, ChevronDown, ClipboardList, Database, LayoutDashboard, LogOut, Settings, X, FileText } from "lucide-react";
 import { NavLink, useNavigate, useLocation } from "react-router-dom";
 import { cn } from "../../lib/utils";
 import { useAuth } from "../../contexts/AuthContext";
@@ -73,12 +61,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
   return (
     <aside
       className={cn(
-        "fixed inset-y-0 left-0 z-50 w-64 border-r border-border/70 bg-surface/95 px-4 pb-6 pt-5 shadow-soft backdrop-blur transition-transform duration-300",
+        "fixed inset-y-0 left-0 z-50 w-64 overflow-y-auto border-r border-border/70 bg-surface/95 px-4 pb-6 pt-5 shadow-soft backdrop-blur transition-transform duration-300 scrollbar-thin",
         isOpen ? "translate-x-0" : "-translate-x-full",
       )}
       aria-hidden={!isOpen}
     >
-      <div className="mb-8 flex items-center justify-between">
+      <div className="mb-6 flex items-center justify-between">
         <div>
           <p className="text-xs uppercase tracking-[0.2em] text-ink-muted">dashboard</p>
           <h2 className="font-display text-lg font-semibold text-ink">Brew Pub</h2>
@@ -87,7 +75,7 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
         <button
           type="button"
           onClick={onClose}
-          className="rounded-full border border-border/70 p-2 text-ink-muted transition hover:text-ink"
+          className="rounded-full border border-border/70 p-2 text-ink-muted transition-all duration-200 hover:bg-warning/10 hover:text-warning hover:border-warning/50 hover:rotate-90 hover:scale-110 hover:shadow-md"
           aria-label="ปิดเมนูด้านข้าง"
         >
           <X className="h-4 w-4" />
@@ -97,7 +85,8 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
       <nav className="space-y-1">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const baseClassName = "flex w-full items-center gap-3 rounded-xl px-3 py-2 text-sm font-medium transition select-none";
+          const baseClassName =
+            "flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition-all duration-200 select-none cursor-pointer";
 
           // Render Single Item
           if (!item.children && item.to) {
@@ -107,7 +96,12 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
                 to={item.to}
                 end={item.end}
                 className={({ isActive }) =>
-                  cn(baseClassName, isActive ? "bg-brand/10 text-brand" : "text-ink-muted hover:bg-brand/5 hover:text-ink")
+                  cn(
+                    baseClassName,
+                    isActive
+                      ? "bg-brand/15 text-brand shadow-sm"
+                      : "text-ink-muted hover:bg-brand/10 hover:text-ink hover:translate-x-1 hover:shadow-sm",
+                  )
                 }
               >
                 <Icon className="h-4 w-4" />
@@ -119,7 +113,11 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
           // Render Single Item (No Link - Placeholder)
           if (!item.children && !item.to) {
             return (
-              <button key={item.label} type="button" className={cn(baseClassName, "text-ink-muted hover:bg-brand/5 hover:text-ink")}>
+              <button
+                key={item.label}
+                type="button"
+                className={cn(baseClassName, "text-ink-muted hover:bg-brand/10 hover:text-ink hover:translate-x-1 hover:shadow-sm")}
+              >
                 <Icon className="h-4 w-4" />
                 {item.label}
               </button>
@@ -136,32 +134,54 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
               <button
                 type="button"
                 onClick={() => toggleMenu(item.label)}
-                className={cn(baseClassName, isChildActive ? "text-brand" : "text-ink-muted hover:text-ink")}
+                className={cn(
+                  baseClassName,
+                  isChildActive ? "text-brand bg-brand/5" : "text-ink-muted hover:bg-brand/10 hover:text-ink hover:translate-x-1",
+                )}
               >
                 <Icon className="h-4 w-4" />
                 <span className="flex-1 text-left">{item.label}</span>
-                {isExpanded ? <ChevronDown className="h-4 w-4 opacity-50" /> : <ChevronRight className="h-4 w-4 opacity-50" />}
+                <ChevronDown
+                  className={cn("h-4 w-4 opacity-50 transition-transform duration-300 ease-out", isExpanded ? "rotate-0" : "-rotate-90")}
+                />
               </button>
 
-              {isExpanded && (
-                <div className="ml-4 space-y-1 border-l border-border/50 pl-2">
-                  {item.children?.map((child) => (
-                    <NavLink
-                      key={child.label}
-                      to={child.to}
-                      className={({ isActive }) =>
-                        cn(
-                          "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition",
-                          isActive ? "bg-brand/10 text-brand" : "text-ink-muted hover:bg-brand/5 hover:text-ink",
-                        )
-                      }
-                    >
-                      {/* Optional Icon for subitem, or just text */}
-                      {child.label}
-                    </NavLink>
-                  ))}
+              {/* Animated submenu container */}
+              <div
+                className="grid transition-all duration-300 ease-out"
+                style={{
+                  gridTemplateRows: isExpanded ? "1fr" : "0fr",
+                }}
+              >
+                <div className="overflow-hidden">
+                  <div
+                    className={cn(
+                      "ml-4 space-y-1 border-l border-border/50 pl-2 transition-opacity duration-300",
+                      isExpanded ? "opacity-100" : "opacity-0",
+                    )}
+                  >
+                    {item.children?.map((child, index) => (
+                      <NavLink
+                        key={child.label}
+                        to={child.to}
+                        className={({ isActive }) =>
+                          cn(
+                            "flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-all duration-200",
+                            isActive
+                              ? "bg-brand/15 text-brand shadow-sm"
+                              : "text-ink-muted hover:bg-brand/10 hover:text-ink hover:translate-x-1 hover:shadow-sm",
+                          )
+                        }
+                        style={{
+                          transitionDelay: isExpanded ? `${index * 50}ms` : "0ms",
+                        }}
+                      >
+                        {child.label}
+                      </NavLink>
+                    ))}
+                  </div>
                 </div>
-              )}
+              </div>
             </div>
           );
         })}
