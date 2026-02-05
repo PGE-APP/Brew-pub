@@ -5,26 +5,36 @@ import { Breadcrumbs } from "../../components/layout/Breadcrumbs";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
 import { Panel } from "../../components/ui/panel";
-import { TankGauge } from "../../components/ui/TankGauge";
 import { cn } from "../../lib/utils";
 
 type RecordData = {
-  level: string;
-  percent: number;
-  Signal_Low: number;
-  Signal_High: number;
-  Signal_current: string | number;
-  Tank_High: string;
-  flowrate: string;
-  TimeStamp: string;
+  // Existing fields that might still be useful or present
+  level?: string | number;
+  percent?: number;
+  Signal_Low?: number;
+  Signal_High?: number;
+  Signal_current?: string | number;
+  Tank_High?: string | number;
+  flowrate?: string;
+  TimeStamp?: string;
+
+  // New fields based on requested columns
+  Order?: string;
+  Order_date?: string;
+  Tank_name?: string;
+  Datatime_start?: string;
+  Data_time_stop?: string;
+  Order_number?: string | number;
+  Volume?: string | number;
+  Station?: string;
+
+  // Allow flexible access
+  [key: string]: any;
 };
 
 const ITEMS_PER_PAGE = 10;
 
-/**
- * Records list page displaying data from REST API.
- */
-export function RecordsListPage() {
+export function BatchOutPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [records, setRecords] = useState<RecordData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -32,7 +42,6 @@ export function RecordsListPage() {
   const [countdown, setCountdown] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
 
-  // Use refs to track state without triggering re-renders and avoiding stale closures in intervals
   const isFirstLoad = useRef(true);
   const lastDataStr = useRef<string>("");
   const timerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -40,7 +49,6 @@ export function RecordsListPage() {
 
   useEffect(() => {
     const fetchData = async () => {
-      // Don't fetch if tab is hidden (save resources)
       if (document.hidden) return;
 
       try {
@@ -58,7 +66,6 @@ export function RecordsListPage() {
         setError(null);
       } catch (err) {
         console.error("Error fetching data:", err);
-        // Only show error if we have no data at all (first load failed)
         if (lastDataStr.current === "") {
           if (axios.isAxiosError(err)) {
             setError(err.message || "เกิดข้อผิดพลาดในการโหลดข้อมูล");
@@ -72,36 +79,30 @@ export function RecordsListPage() {
           isFirstLoad.current = false;
         }
 
-        // Reset countdown
         setCountdown(15);
 
-        // Schedule next fetch only after current one finishes (Prevent pile-up)
         if (!document.hidden) {
-          timerRef.current = setTimeout(fetchData, 15000); // 15 seconds
+          timerRef.current = setTimeout(fetchData, 15000);
         }
       }
     };
 
-    // Initial fetch
     fetchData();
 
-    // Countdown ticker - updates every second
     const updateCountdown = () => {
       setCountdown((prev) => {
         if (prev > 0) return prev - 1;
-        return 15; // Reset when reaches 0
+        return 15;
       });
       countdownTimerRef.current = setTimeout(updateCountdown, 1000);
     };
     countdownTimerRef.current = setTimeout(updateCountdown, 1000);
 
-    // Handle visibility change to resume/pause
     const handleVisibilityChange = () => {
       if (document.hidden) {
         if (timerRef.current) clearTimeout(timerRef.current);
         if (countdownTimerRef.current) clearTimeout(countdownTimerRef.current);
       } else {
-        // Resume immediately when visible
         setCountdown(15);
         fetchData();
         countdownTimerRef.current = setTimeout(updateCountdown, 1000);
@@ -118,7 +119,7 @@ export function RecordsListPage() {
   }, []);
 
   // Pagination logic
-  const totalPages = Math.max(1, Math.ceil(records.length / ITEMS_PER_PAGE));
+  const totalPages = Math.ceil(records.length / ITEMS_PER_PAGE);
   const startIndex = (currentPage - 1) * ITEMS_PER_PAGE;
   const endIndex = startIndex + ITEMS_PER_PAGE;
   const currentRecords = records.slice(startIndex, endIndex);
@@ -135,15 +136,14 @@ export function RecordsListPage() {
       ) : null}
 
       <div className={cn("min-h-screen transition-[margin] duration-300", sidebarOpen ? "lg:ml-64" : "lg:ml-0")}>
-        <Topbar title="รายการข้อมูลจากเซ็นเซอร์" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+        <Topbar title="บันทึก Batch Out" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
 
         <main className="space-y-6 px-6 pb-10 pt-6">
-          <Breadcrumbs items={[{ label: "รายการ" }, { label: "ข้อมูลเซ็นเซอร์" }]} />
+          <Breadcrumbs items={[{ label: "รายการ" }, { label: "Batch_Out" }]} />
 
-          {/* Data Table Panel - at the top */}
           <Panel>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลการตรวจวัด</h2>
+              <h2 className="font-display text-lg font-semibold text-ink">Batch_Out</h2>
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -180,41 +180,50 @@ export function RecordsListPage() {
                     <thead className="sticky top-0 bg-brand/5 text-xs uppercase tracking-wide text-ink-muted">
                       <tr>
                         <th className="px-4 py-3 font-semibold">ลำดับ</th>
+                        <th className="px-4 py-3 font-semibold">Order</th>
+                        <th className="px-4 py-3 font-semibold">Order date</th>
+                        <th className="px-4 py-3 font-semibold">Tank name</th>
+                        <th className="px-4 py-3 font-semibold">Tank High</th>
                         <th className="px-4 py-3 font-semibold">Level (L)</th>
-                        <th className="px-4 py-3 font-semibold">เปอร์เซ็นต์</th>
                         <th className="px-4 py-3 font-semibold">Signal Low</th>
                         <th className="px-4 py-3 font-semibold">Signal High</th>
-                        <th className="px-4 py-3 font-semibold">Signal Current</th>
-                        <th className="px-4 py-3 font-semibold">Tank High</th>
-                        <th className="px-4 py-3 font-semibold">อัตราการไหล</th>
-                        <th className="px-4 py-3 font-semibold">เวลาบันทึก</th>
+                        <th className="px-4 py-3 font-semibold">Current</th>
+                        <th className="px-4 py-3 font-semibold">Order number</th>
+                        <th className="px-4 py-3 font-semibold">Volume</th>
+                        <th className="px-4 py-3 font-semibold">Station</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
                       {currentRecords.map((record, index) => {
-                        const levelValue = typeof record.level === "string" ? parseFloat(record.level) : record.level || 0;
-                        // π × r² × level(cm) / 1000 = π × 900 × level / 1000 = π × 0.9 × level (liters)
-                        const volumeLiters = Math.PI * 0.9 * levelValue;
-
                         return (
                           <tr key={startIndex + index} className="transition hover:bg-brand/5">
                             <td className="px-4 py-3 text-ink">{startIndex + index + 1}</td>
-                            <td className="px-4 py-3 text-ink">{volumeLiters.toFixed(2)} L</td>
+                            <td className="px-4 py-3 text-ink">{record.TimeStamp ? `TL001 ${record.TimeStamp} :1` : "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Order_date ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Tank_name ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Tank_High ?? "-"}</td>
                             <td className="px-4 py-3 text-ink">
-                              {typeof record.percent === "number" ? `${record.percent.toFixed(2)}%` : record.percent}
+                              {(() => {
+                                const val = record.Level ?? record.level;
+                                if (val === null || val === undefined) return "-";
+                                const num = typeof val === "string" ? parseFloat(val) : val;
+                                if (isNaN(num)) return val;
+                                // Convert cm to Liters: π * 0.9 * level
+                                return `${(num * 0.9 * Math.PI).toFixed(2)} `;
+                              })()}
                             </td>
-                            <td className="px-4 py-3 text-ink-muted">{record.Signal_Low}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.Signal_High}</td>
-                            <td className="px-4 py-3 text-ink-muted">
+                            <td className="px-4 py-3 text-ink">{record.Signal_Low ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Signal_High ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">
                               {typeof record.Signal_current === "number"
                                 ? record.Signal_current.toFixed(3)
                                 : typeof record.Signal_current === "string" && !isNaN(Number(record.Signal_current))
                                   ? Number(record.Signal_current).toFixed(3)
-                                  : record.Signal_current}
+                                  : (record.Signal_current ?? "-")}
                             </td>
-                            <td className="px-4 py-3 text-ink-muted">{record.Tank_High}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.flowrate}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.TimeStamp}</td>
+                            <td className="px-4 py-3 text-ink">{record.Order_number ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Volume ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Station ?? "-"}</td>
                           </tr>
                         );
                       })}
@@ -276,38 +285,6 @@ export function RecordsListPage() {
                   </div>
                 </div>
               </>
-            )}
-          </Panel>
-
-          {/* Tank Gauges Panel - at the bottom */}
-          <Panel>
-            <div className="mb-4">
-              <h2 className="font-display text-lg font-semibold text-ink">สถานะถังเก็บ (Real-time Tank Status)</h2>
-            </div>
-
-            {!loading && !error && records.length > 0 && (
-              <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {records.map((record, index) => {
-                  const levelValue = typeof record.level === "string" ? parseFloat(record.level) : record.level || 0;
-                  // π × r² × level(cm) / 1000 = π × 900 × level / 1000 = π × 0.9 × level (liters)
-                  const volumeLiters = Math.PI * 0.9 * levelValue;
-                  const MAX_CAPACITY_LITERS = 254;
-                  const fillPercent = (volumeLiters / MAX_CAPACITY_LITERS) * 100;
-
-                  return (
-                    <div
-                      key={`gauge-${index}`}
-                      className="flex flex-col items-center rounded-2xl border border-border/50 bg-surface/50 p-6 shadow-sm"
-                    >
-                      <TankGauge percent={fillPercent} displayValue={volumeLiters} unit="L" width={160} height={300} label={`Tank ${index + 1}`} />
-                      <div className="mt-4 text-center">
-                        <p className="font-display text-base font-semibold text-ink">Tank {index + 1}</p>
-                        <p className="text-xs text-ink-muted">ความจุถัง: {MAX_CAPACITY_LITERS} L</p>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
             )}
           </Panel>
         </main>

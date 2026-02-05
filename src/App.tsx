@@ -6,7 +6,8 @@ import { DashboardOverviewPage } from "./pages/dashboard/OverviewPage";
 import { DashboardPage } from "./pages/dashboard";
 import { RecordsListPage } from "./pages/records/RecordsListPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { BatchLogPage } from "./pages/records/BatchLogPage";
+import { BatchInPage } from "./pages/records/BatchInPage";
+import { BatchOutPage } from "./pages/records/BatchOutPage";
 
 /**
  * Root application entry with authentication routing.
@@ -48,7 +49,15 @@ function App() {
             path="/records/batch"
             element={
               <ProtectedRoute>
-                <BatchLogPage />
+                <BatchInPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/records/batch-out"
+            element={
+              <ProtectedRoute>
+                <BatchOutPage />
               </ProtectedRoute>
             }
           />

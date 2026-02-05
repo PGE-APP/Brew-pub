@@ -24,7 +24,8 @@ const navItems: NavItem[] = [
     icon: ClipboardList,
     children: [
       { label: "ข้อมูลเซ็นเซอร์", to: "/records/sensor", icon: Activity },
-      { label: "บันทึก Batch", to: "/records/batch", icon: FileText },
+      { label: "Batch_In", to: "/records/batch", icon: FileText },
+      { label: "Batch_Out", to: "/records/batch-out", icon: FileText },
     ],
   },
   { label: "การผลิต", icon: Activity },
