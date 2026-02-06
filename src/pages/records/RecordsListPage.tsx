@@ -8,6 +8,8 @@ import { Panel } from "../../components/ui/panel";
 import { TankGauge } from "../../components/ui/TankGauge";
 import { cn } from "../../lib/utils";
 
+import { formatDate } from "../../utils/dateUtils";
+
 type RecordData = {
   level: string;
   percent: number;
@@ -140,6 +142,121 @@ export function RecordsListPage() {
         <main className="space-y-6 px-6 pb-10 pt-6">
           <Breadcrumbs items={[{ label: "รายการ" }, { label: "ข้อมูลเซ็นเซอร์" }]} />
 
+          {/* Raw Data Panel - duplicate of Data Table but with raw level */}
+          <Panel>
+            <div className="mb-4 flex items-center justify-between">
+              <h2 className="font-display text-lg font-semibold text-ink">ข้อมูลตั้งต้น (Raw Data)</h2>
+              <div className="flex items-center gap-2">
+                <span className="relative flex h-2 w-2">
+                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                </span>
+                <p className="text-xs text-ink-muted">อัปเดตอัตโนมัติใน {countdown} วินาที</p>
+              </div>
+            </div>
+
+            {!loading && !error && records.length > 0 && (
+              <div className="overflow-x-auto">
+                <table className="w-full text-left text-sm">
+                  <thead className="sticky top-0 bg-brand/5 text-xs uppercase tracking-wide text-ink-muted">
+                    <tr>
+                      <th className="px-4 py-3 font-semibold">ลำดับ</th>
+                      <th className="px-4 py-3 font-semibold">Level (Raw)</th>
+                      <th className="px-4 py-3 font-semibold">เปอร์เซ็นต์</th>
+                      <th className="px-4 py-3 font-semibold">Signal Low</th>
+                      <th className="px-4 py-3 font-semibold">Signal High</th>
+                      <th className="px-4 py-3 font-semibold">Signal Current</th>
+                      <th className="px-4 py-3 font-semibold">Tank High</th>
+                      <th className="px-4 py-3 font-semibold">อัตราการไหล</th>
+                      <th className="px-4 py-3 font-semibold">เวลาบันทึก</th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-border/50">
+                    {currentRecords.map((record, index) => {
+                      return (
+                        <tr key={`raw-${startIndex + index}`} className="transition hover:bg-brand/5">
+                          <td className="px-4 py-3 text-ink">{startIndex + index + 1}</td>
+                          <td className="px-4 py-3 text-ink">{record.level}</td>
+                          <td className="px-4 py-3 text-ink">
+                            {typeof record.percent === "number" ? `${record.percent.toFixed(2)}%` : record.percent}
+                          </td>
+                          <td className="px-4 py-3 text-ink-muted">{record.Signal_Low}</td>
+                          <td className="px-4 py-3 text-ink-muted">{record.Signal_High}</td>
+                          <td className="px-4 py-3 text-ink-muted">
+                            {typeof record.Signal_current === "number"
+                              ? record.Signal_current.toFixed(3)
+                              : typeof record.Signal_current === "string" && !isNaN(Number(record.Signal_current))
+                                ? Number(record.Signal_current).toFixed(3)
+                                : record.Signal_current}
+                          </td>
+                          <td className="px-4 py-3 text-ink-muted">{record.Tank_High}</td>
+                          <td className="px-4 py-3 text-ink-muted">{record.flowrate}</td>
+                          <td className="px-4 py-3 text-ink-muted">{formatDate(record.TimeStamp)}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            )}
+
+            {/* Pagination - Always show if records exist */}
+            {!loading && !error && records.length > 0 && (
+              <div className="mt-6 flex items-center justify-between border-t border-border/50 pt-4">
+                <p className="text-sm text-ink-muted">
+                  แสดง {startIndex + 1} - {Math.min(endIndex, records.length)} จาก {records.length} รายการ
+                </p>
+                <div className="flex items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage - 1)}
+                    disabled={currentPage === 1}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border/70 px-3 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-brand/5 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    <ChevronLeft className="h-4 w-4" />
+                    ก่อนหน้า
+                  </button>
+                  <div className="flex items-center gap-1">
+                    {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+                      return (
+                        <button
+                          key={pageNum}
+                          type="button"
+                          onClick={() => goToPage(pageNum)}
+                          className={cn(
+                            "h-8 w-8 rounded-lg text-sm font-medium transition",
+                            currentPage === pageNum ? "bg-brand text-brand-foreground" : "text-ink-muted hover:bg-brand/10 hover:text-ink",
+                          )}
+                        >
+                          {pageNum}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => goToPage(currentPage + 1)}
+                    disabled={currentPage === totalPages}
+                    className="inline-flex items-center gap-1 rounded-lg border border-border/70 px-3 py-1.5 text-sm font-medium text-ink-muted transition hover:bg-brand/5 hover:text-ink disabled:cursor-not-allowed disabled:opacity-50"
+                  >
+                    ถัดไป
+                    <ChevronRight className="h-4 w-4" />
+                  </button>
+                </div>
+              </div>
+            )}
+          </Panel>
+
           {/* Data Table Panel - at the top */}
           <Panel>
             <div className="mb-4 flex items-center justify-between">
@@ -214,7 +331,7 @@ export function RecordsListPage() {
                             </td>
                             <td className="px-4 py-3 text-ink-muted">{record.Tank_High}</td>
                             <td className="px-4 py-3 text-ink-muted">{record.flowrate}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.TimeStamp}</td>
+                            <td className="px-4 py-3 text-ink-muted">{formatDate(record.TimeStamp)}</td>
                           </tr>
                         );
                       })}

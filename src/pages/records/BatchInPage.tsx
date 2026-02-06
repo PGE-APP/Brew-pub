@@ -7,6 +7,8 @@ import { Topbar } from "../../components/layout/Topbar";
 import { Panel } from "../../components/ui/panel";
 import { cn } from "../../lib/utils";
 
+import { formatDate } from "../../utils/dateUtils";
+
 type RecordData = {
   // Existing fields that might still be useful or present
   level?: string | number;
@@ -186,9 +188,9 @@ export function BatchInPage() {
                         <th className="px-4 py-3 font-semibold">Datatime start</th>
                         <th className="px-4 py-3 font-semibold">Data time stop</th>
                         <th className="px-4 py-3 font-semibold">Tank High</th>
-                        <th className="px-4 py-3 font-semibold">Level (L)</th>
+                        <th className="px-4 py-3 font-semibold">Level (cm)</th>
                         <th className="px-4 py-3 font-semibold">Order number</th>
-                        <th className="px-4 py-3 font-semibold">Volume</th>
+                        <th className="px-4 py-3 font-semibold">Volume (L)</th>
                         <th className="px-4 py-3 font-semibold">Station</th>
                       </tr>
                     </thead>
@@ -197,11 +199,11 @@ export function BatchInPage() {
                         return (
                           <tr key={startIndex + index} className="transition hover:bg-brand/5">
                             <td className="px-4 py-3 text-ink">{startIndex + index + 1}</td>
-                            <td className="px-4 py-3 text-ink">{record.TimeStamp ? `TL001 ${record.TimeStamp} :1` : "-"}</td>
-                            <td className="px-4 py-3 text-ink">{record.Order_date ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.TimeStamp ? `TL001 ${formatDate(record.TimeStamp)}` : "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Order_date ? formatDate(record.Order_date) : "-"}</td>
                             <td className="px-4 py-3 text-ink">{record.Tank_name ?? "-"}</td>
-                            <td className="px-4 py-3 text-ink">{record.Datatime_start ?? "-"}</td>
-                            <td className="px-4 py-3 text-ink">{record.Data_time_stop ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Datatime_start ? formatDate(record.Datatime_start) : "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Data_time_stop ? formatDate(record.Data_time_stop) : "-"}</td>
                             <td className="px-4 py-3 text-ink">{record.Tank_High ?? "-"}</td>
                             <td className="px-4 py-3 text-ink">
                               {(() => {
@@ -209,12 +211,22 @@ export function BatchInPage() {
                                 if (val === null || val === undefined) return "-";
                                 const num = typeof val === "string" ? parseFloat(val) : val;
                                 if (isNaN(num)) return val;
-                                // Convert cm to Liters: π * 0.9 * level
-                                return `${(num * 0.9 * Math.PI).toFixed(2)} `;
+                                // Display raw Level
+                                return num;
                               })()}
                             </td>
                             <td className="px-4 py-3 text-ink">{record.Order_number ?? "-"}</td>
-                            <td className="px-4 py-3 text-ink">{record.Volume ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">
+                              {(() => {
+                                const val = record.Level ?? record.level;
+                                if (val === null || val === undefined) return "-";
+                                const num = typeof val === "string" ? parseFloat(val) : val;
+                                if (isNaN(num)) return record.Volume ?? "-";
+                                // Convert cm to Liters: π * 0.9 * level
+                                // Use calculated volume instead of record.Volume
+                                return `${(num * 0.9 * Math.PI).toFixed(2)} `;
+                              })()}
+                            </td>
                             <td className="px-4 py-3 text-ink">{record.Station ?? "-"}</td>
                           </tr>
                         );
