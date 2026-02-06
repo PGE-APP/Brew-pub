@@ -1,6 +1,7 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
-import { ChevronLeft, ChevronRight } from "lucide-react";
+import * as XLSX from "xlsx";
+import { ChevronLeft, ChevronRight, Download, ChevronDown, FileSpreadsheet, FileText } from "lucide-react";
 import { Breadcrumbs } from "../../components/layout/Breadcrumbs";
 import { Sidebar } from "../../components/layout/Sidebar";
 import { Topbar } from "../../components/layout/Topbar";
@@ -43,6 +44,7 @@ export function BatchInPage() {
   const [error, setError] = useState<string | null>(null);
   const [countdown, setCountdown] = useState(15);
   const [currentPage, setCurrentPage] = useState(1);
+  const [showExportMenu, setShowExportMenu] = useState(false);
 
   const isFirstLoad = useRef(true);
   const lastDataStr = useRef<string>("");
@@ -130,6 +132,51 @@ export function BatchInPage() {
     setCurrentPage(Math.max(1, Math.min(page, totalPages)));
   };
 
+  const getExportData = () => {
+    return records.map((record, index) => {
+      return {
+        ลำดับ: index + 1,
+        Order: record.TimeStamp ? `TL${(index + 1).toString().padStart(3, "0")} ${formatDate(record.TimeStamp)}` : "-",
+        "Order date": record.Order_date ? formatDate(record.Order_date) : "-",
+        "Tank name": record.Tank_name ?? "-",
+        "Datatime start": record.Datatime_start ? formatDate(record.Datatime_start) : "-",
+        "Data time stop": record.Data_time_stop ? formatDate(record.Data_time_stop) : "-",
+        "Tank High": record.Tank_High ?? "-",
+        "Level (cm)": (() => {
+          const val = record.Level ?? record.level;
+          if (val === null || val === undefined) return "-";
+          const num = typeof val === "string" ? parseFloat(val) : val;
+          return isNaN(num) ? val : num;
+        })(),
+        "Order number": index + 1,
+        "Volume (L)": (() => {
+          const val = record.Level ?? record.level;
+          if (val === null || val === undefined) return "-";
+          const num = typeof val === "string" ? parseFloat(val) : val;
+          if (isNaN(num)) return record.Volume ?? "-";
+          return `${(num * 0.9 * Math.PI).toFixed(2)}`;
+        })(),
+        Station: record.Station ?? "-",
+      };
+    });
+  };
+
+  const handleExport = (format: "xlsx" | "csv") => {
+    if (records.length === 0) return;
+
+    const exportData = getExportData();
+    const worksheet = XLSX.utils.json_to_sheet(exportData);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Batch In Records");
+
+    const dateStr = new Date().toISOString().split("T")[0];
+    const fileName = `Batch_In_Records_${dateStr}.${format}`;
+
+    // Write file
+    XLSX.writeFile(workbook, fileName, { bookType: format });
+    setShowExportMenu(false);
+  };
+
   return (
     <div className="min-h-screen">
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -138,20 +185,74 @@ export function BatchInPage() {
       ) : null}
 
       <div className={cn("min-h-screen transition-[margin] duration-300", sidebarOpen ? "lg:ml-64" : "lg:ml-0")}>
-        <Topbar title="บันทึก Batch" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
+        <Topbar title="บันทึก Batch In" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
 
         <main className="space-y-6 px-6 pb-10 pt-6">
           <Breadcrumbs items={[{ label: "รายการ" }, { label: "Batch_In" }]} />
 
           <Panel>
-            <div className="mb-4 flex items-center justify-between">
+            <div className="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
               <h2 className="font-display text-lg font-semibold text-ink">Batch_In</h2>
-              <div className="flex items-center gap-2">
-                <span className="relative flex h-2 w-2">
-                  <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
-                  <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
-                </span>
-                <p className="text-xs text-ink-muted">อัปเดตอัตโนมัติใน {countdown} วินาที</p>
+              <div className="flex flex-wrap items-center gap-3">
+                {records.length > 0 && (
+                  <div className="relative">
+                    <button
+                      onClick={() => setShowExportMenu(!showExportMenu)}
+                      className="inline-flex items-center gap-2 rounded-lg bg-green-600 px-3 py-1.5 text-sm font-medium text-white shadow-sm hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2 transition-colors"
+                    >
+                      <Download className="h-4 w-4" />
+                      Export
+                      <ChevronDown className={cn("h-3 w-3 opacity-80 transition-transform duration-200", showExportMenu && "rotate-180")} />
+                    </button>
+
+                    {/* Inline style for animation */}
+                    <style>{`
+                      @keyframes scale-in {
+                        from { opacity: 0; transform: scale(0.95) translateY(-5px); }
+                        to { opacity: 1; transform: scale(1) translateY(0); }
+                      }
+                    `}</style>
+
+                    {showExportMenu && (
+                      <>
+                        {/* Overlay to close menu when clicking outside */}
+                        <div className="fixed inset-0 z-10 cursor-default" onClick={() => setShowExportMenu(false)} />
+                        {/* Dropdown Menu with Animation */}
+                        <div
+                          className="absolute right-0 top-full z-20 mt-1 w-40 overflow-hidden rounded-lg border border-border bg-white shadow-lg ring-1 ring-black/5"
+                          style={{ animation: "scale-in 0.15s ease-out forwards", transformOrigin: "top right" }}
+                        >
+                          <button
+                            onClick={() => handleExport("xlsx")}
+                            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-ink hover:bg-brand/5 hover:text-brand transition-colors"
+                          >
+                            <FileSpreadsheet className="h-4 w-4 text-green-600" />
+                            Excel (.xlsx)
+                          </button>
+                          <button
+                            onClick={() => handleExport("csv")}
+                            className="flex w-full items-center gap-2 px-4 py-2.5 text-left text-sm text-ink hover:bg-brand/5 hover:text-brand transition-colors"
+                          >
+                            <FileText className="h-4 w-4 text-blue-600" />
+                            CSV (.csv)
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                )}
+
+                <div className="flex items-center gap-2 rounded-lg border border-border/50 bg-brand/5 px-2 py-1">
+                  <span className="relative flex h-2 w-2">
+                    <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
+                    <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500"></span>
+                  </span>
+                  <p className="text-xs text-ink-muted">
+                    อัปเดตอัตโนมัติใน
+                    <span className="inline-block w-5 text-center font-mono font-medium text-brand">{countdown}</span>
+                    วินาที
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -199,7 +300,9 @@ export function BatchInPage() {
                         return (
                           <tr key={startIndex + index} className="transition hover:bg-brand/5">
                             <td className="px-4 py-3 text-ink">{startIndex + index + 1}</td>
-                            <td className="px-4 py-3 text-ink">{record.TimeStamp ? `TL001 ${formatDate(record.TimeStamp)}` : "-"}</td>
+                            <td className="px-4 py-3 text-ink">
+                              {record.TimeStamp ? `TL${(startIndex + index + 1).toString().padStart(3, "0")} ${formatDate(record.TimeStamp)}` : "-"}
+                            </td>
                             <td className="px-4 py-3 text-ink">{record.Order_date ? formatDate(record.Order_date) : "-"}</td>
                             <td className="px-4 py-3 text-ink">{record.Tank_name ?? "-"}</td>
                             <td className="px-4 py-3 text-ink">{record.Datatime_start ? formatDate(record.Datatime_start) : "-"}</td>
@@ -215,7 +318,7 @@ export function BatchInPage() {
                                 return num;
                               })()}
                             </td>
-                            <td className="px-4 py-3 text-ink">{record.Order_number ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{startIndex + index + 1}</td>
                             <td className="px-4 py-3 text-ink">
                               {(() => {
                                 const val = record.Level ?? record.level;
