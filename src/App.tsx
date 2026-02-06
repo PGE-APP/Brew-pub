@@ -1,12 +1,13 @@
 import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { AuthProvider } from "./contexts/AuthContext";
 import { ProtectedRoute } from "./components/auth/ProtectedRoute";
-import { LoginPage } from "./pages/LoginPage";
-import { DashboardOverviewPage } from "./pages/DashboardOverviewPage";
-import { DashboardPage } from "./pages/DashboardPage";
-import { RecordsListPage } from "./pages/RecordsListPage";
+import { LoginPage } from "./pages/auth/LoginPage";
+import { DashboardOverviewPage } from "./pages/dashboard/OverviewPage";
+import { DashboardPage } from "./pages/dashboard";
+import { RecordsListPage } from "./pages/records/RecordsListPage";
 import { NotFoundPage } from "./pages/NotFoundPage";
-import { BatchLogPage } from "./pages/BatchLogPage";
+import { BatchInPage } from "./pages/records/BatchInPage";
+import { BatchOutPage } from "./pages/records/BatchOutPage";
 
 /**
  * Root application entry with authentication routing.
@@ -48,7 +49,15 @@ function App() {
             path="/records/batch"
             element={
               <ProtectedRoute>
-                <BatchLogPage />
+                <BatchInPage />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/records/batch-out"
+            element={
+              <ProtectedRoute>
+                <BatchOutPage />
               </ProtectedRoute>
             }
           />

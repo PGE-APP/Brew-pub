@@ -11,9 +11,9 @@ import {
   ChartContainer,
   ChartTooltipContent,
   type ChartConfig,
-} from '../ui/chart'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+} from '../../ui/chart'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 const data = [
   { date: '1 ก.ค.', output: 120 },

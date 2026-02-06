@@ -1,50 +1,50 @@
-import { useState, type FormEvent } from 'react'
-import { useNavigate, useLocation, Navigate } from 'react-router-dom'
-import { LogIn, AlertCircle, Eye, EyeOff } from 'lucide-react'
-import { useAuth } from '../contexts/AuthContext'
-import { cn } from '../lib/utils'
+import { useState, type FormEvent } from "react";
+import { useNavigate, useLocation, Navigate } from "react-router-dom";
+import { LogIn, AlertCircle, Eye, EyeOff } from "lucide-react";
+import { useAuth } from "../../contexts/AuthContext";
+import { cn } from "../../lib/utils";
 
 /**
  * Modern login page with glassmorphism design and smooth animations.
  */
 export function LoginPage() {
-  const navigate = useNavigate()
-  const location = useLocation()
-  const { login, isAuthenticated } = useAuth()
-  
-  const [username, setUsername] = useState('')
-  const [password, setPassword] = useState('')
-  const [showPassword, setShowPassword] = useState(false)
-  const [isLoading, setIsLoading] = useState(false)
-  const [error, setError] = useState('')
+  const navigate = useNavigate();
+  const location = useLocation();
+  const { login, isAuthenticated } = useAuth();
+
+  const [username, setUsername] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState("");
 
   // Redirect if already authenticated
   if (isAuthenticated) {
-    const from = (location.state as any)?.from?.pathname || '/dashboard'
-    return <Navigate to={from} replace />
+    const from = (location.state as any)?.from?.pathname || "/dashboard";
+    return <Navigate to={from} replace />;
   }
 
   const handleSubmit = async (e: FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setIsLoading(true)
+    e.preventDefault();
+    setError("");
+    setIsLoading(true);
 
     try {
-      const success = await login(username, password)
-      
+      const success = await login(username, password);
+
       if (success) {
         // Redirect to intended destination or dashboard
-        const from = (location.state as any)?.from?.pathname || '/dashboard'
-        navigate(from, { replace: true })
+        const from = (location.state as any)?.from?.pathname || "/dashboard";
+        navigate(from, { replace: true });
       } else {
-        setError('ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง')
+        setError("ชื่อผู้ใช้หรือรหัสผ่านไม่ถูกต้อง");
       }
     } catch (err) {
-      setError('เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง')
+      setError("เกิดข้อผิดพลาดในการเข้าสู่ระบบ กรุณาลองใหม่อีกครั้ง");
     } finally {
-      setIsLoading(false)
+      setIsLoading(false);
     }
-  }
+  };
 
   return (
     <div className="relative flex min-h-screen items-center justify-center overflow-hidden bg-gradient-to-br from-brand/10 via-canvas to-accent/10">
@@ -63,12 +63,8 @@ export function LoginPage() {
             <div className="mb-3 inline-flex h-16 w-16 items-center justify-center rounded-2xl bg-brand/10 text-brand shadow-soft">
               <LogIn className="h-8 w-8" />
             </div>
-            <h1 className="font-display text-2xl font-bold text-ink">
-              ยินดีต้อนรับกลับ
-            </h1>
-            <p className="mt-2 text-sm text-ink-muted">
-              เข้าสู่ระบบ Brew Pub Management
-            </p>
+            <h1 className="font-display text-2xl font-bold text-ink">ยินดีต้อนรับกลับ</h1>
+            <p className="mt-2 text-sm text-ink-muted">เข้าสู่ระบบ Brew Pub Management</p>
           </div>
 
           {/* Form */}
@@ -93,11 +89,11 @@ export function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
                 required
                 className={cn(
-                  'w-full rounded-xl border border-border/70 bg-surface px-4 py-3 text-ink',
-                  'transition-all duration-200',
-                  'placeholder:text-ink-muted/50',
-                  'focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/20',
-                  'disabled:cursor-not-allowed disabled:opacity-50'
+                  "w-full rounded-xl border border-border/70 bg-surface px-4 py-3 text-ink",
+                  "transition-all duration-200",
+                  "placeholder:text-ink-muted/50",
+                  "focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/20",
+                  "disabled:cursor-not-allowed disabled:opacity-50",
                 )}
                 placeholder="กรอกชื่อผู้ใช้"
                 disabled={isLoading}
@@ -112,16 +108,16 @@ export function LoginPage() {
               <div className="relative">
                 <input
                   id="password"
-                  type={showPassword ? 'text' : 'password'}
+                  type={showPassword ? "text" : "password"}
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
                   className={cn(
-                    'w-full rounded-xl border border-border/70 bg-surface px-4 py-3 pr-12 text-ink',
-                    'transition-all duration-200',
-                    'placeholder:text-ink-muted/50',
-                    'focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/20',
-                    'disabled:cursor-not-allowed disabled:opacity-50'
+                    "w-full rounded-xl border border-border/70 bg-surface px-4 py-3 pr-12 text-ink",
+                    "transition-all duration-200",
+                    "placeholder:text-ink-muted/50",
+                    "focus:border-brand focus:outline-none focus:ring-4 focus:ring-brand/20",
+                    "disabled:cursor-not-allowed disabled:opacity-50",
                   )}
                   placeholder="กรอกรหัสผ่าน"
                   disabled={isLoading}
@@ -133,11 +129,7 @@ export function LoginPage() {
                   tabIndex={-1}
                   disabled={isLoading}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
+                  {showPassword ? <EyeOff className="h-5 w-5" /> : <Eye className="h-5 w-5" />}
                 </button>
               </div>
             </div>
@@ -145,9 +137,7 @@ export function LoginPage() {
             {/* Demo credentials hint */}
             <div className="rounded-xl border border-brand/20 bg-brand/5 p-4 text-xs text-ink-muted">
               <p className="font-semibold text-ink">💡 สำหรับการทดสอบ</p>
-              <p className="mt-1">
-                ใช้ชื่อผู้ใช้และรหัสผ่านใดก็ได้เพื่อเข้าสู่ระบบ
-              </p>
+              <p className="mt-1">ใช้ชื่อผู้ใช้และรหัสผ่านใดก็ได้เพื่อเข้าสู่ระบบ</p>
             </div>
 
             {/* Submit button */}
@@ -155,12 +145,12 @@ export function LoginPage() {
               type="submit"
               disabled={isLoading || !username || !password}
               className={cn(
-                'group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-brand to-brand/90 px-6 py-3.5 font-semibold text-brand-foreground shadow-lg',
-                'transition-all duration-300',
-                'hover:scale-[1.02] hover:shadow-xl',
-                'focus:outline-none focus:ring-4 focus:ring-brand/30',
-                'disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100',
-                'active:scale-[0.98]'
+                "group relative w-full overflow-hidden rounded-xl bg-gradient-to-r from-brand to-brand/90 px-6 py-3.5 font-semibold text-brand-foreground shadow-lg",
+                "transition-all duration-300",
+                "hover:scale-[1.02] hover:shadow-xl",
+                "focus:outline-none focus:ring-4 focus:ring-brand/30",
+                "disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:scale-100",
+                "active:scale-[0.98]",
               )}
             >
               <span className="relative z-10 flex items-center justify-center gap-2">
@@ -176,7 +166,7 @@ export function LoginPage() {
                   </>
                 )}
               </span>
-              
+
               {/* Shine effect on hover */}
               <div className="absolute inset-0 -translate-x-full bg-gradient-to-r from-transparent via-white/20 to-transparent transition-transform duration-700 group-hover:translate-x-full" />
             </button>
@@ -184,25 +174,18 @@ export function LoginPage() {
 
           {/* Footer */}
           <div className="border-t border-border/30 bg-gradient-to-r from-brand/5 to-accent/5 px-8 py-6 text-center">
-            <p className="text-xs text-ink-muted">
-              © 2026 Brew Pub Management System
-            </p>
-            <p className="mt-1 text-xs text-ink-muted">
-              ระบบจัดการโรงเบียร์คราฟท์
-            </p>
+            <p className="text-xs text-ink-muted">© 2026 Brew Pub Management System</p>
+            <p className="mt-1 text-xs text-ink-muted">ระบบจัดการโรงเบียร์คราฟท์</p>
           </div>
         </div>
 
         {/* Bottom decoration */}
         <div className="mt-8 text-center">
           <p className="text-xs text-ink-muted">
-            ต้องการความช่วยเหลือ?{' '}
-            <button className="font-medium text-brand transition hover:underline">
-              ติดต่อฝ่ายสนับสนุน
-            </button>
+            ต้องการความช่วยเหลือ? <button className="font-medium text-brand transition hover:underline">ติดต่อฝ่ายสนับสนุน</button>
           </p>
         </div>
       </div>
     </div>
-  )
+  );
 }

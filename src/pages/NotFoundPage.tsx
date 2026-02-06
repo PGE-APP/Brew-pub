@@ -1,12 +1,12 @@
-import { ArrowLeft, BarChart3, LayoutDashboard, SearchX } from 'lucide-react'
-import { Link, useNavigate } from 'react-router-dom'
-import { Panel } from '../components/ui/panel'
+import { ArrowLeft, BarChart3, LayoutDashboard, SearchX } from "lucide-react";
+import { Link, useNavigate } from "react-router-dom";
+import { Panel } from "../components/ui/panel";
 
 /**
  * Standalone 404 page aligned with the system theme.
  */
 export function NotFoundPage() {
-  const navigate = useNavigate()
+  const navigate = useNavigate();
 
   return (
     <div className="relative flex min-h-screen items-center justify-center px-6 py-12">
@@ -18,15 +18,10 @@ export function NotFoundPage() {
 
           <div className="relative z-10 grid gap-10 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
             <div>
-              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-ink-muted">
-                error 404
-              </p>
-              <h2 className="mt-3 font-display text-4xl font-semibold text-ink">
-                ไม่พบหน้านี้
-              </h2>
+              <p className="text-xs font-semibold uppercase tracking-[0.35em] text-ink-muted">error 404</p>
+              <h2 className="mt-3 font-display text-4xl font-semibold text-ink">ไม่พบหน้านี้</h2>
               <p className="mt-3 max-w-xl text-sm text-ink-muted">
-                หน้าที่คุณต้องการอาจถูกย้าย ลบ หรือพิมพ์ URL ไม่ถูกต้อง
-                ลองใช้ปุ่มด้านล่างเพื่อกลับไปยังหน้าหลักของระบบ
+                หน้าที่คุณต้องการอาจถูกย้าย ลบ หรือพิมพ์ URL ไม่ถูกต้อง ลองใช้ปุ่มด้านล่างเพื่อกลับไปยังหน้าหลักของระบบ
               </p>
 
               <div className="mt-6 flex flex-wrap gap-3">
@@ -61,12 +56,8 @@ export function NotFoundPage() {
                   <SearchX className="h-5 w-5" />
                 </span>
                 <div>
-                  <p className="text-sm font-semibold text-ink">
-                    แนะนำการตรวจสอบ
-                  </p>
-                  <p className="text-xs text-ink-muted">
-                    เคล็ดลับเพื่อกลับสู่ระบบเร็วขึ้น
-                  </p>
+                  <p className="text-sm font-semibold text-ink">แนะนำการตรวจสอบ</p>
+                  <p className="text-xs text-ink-muted">เคล็ดลับเพื่อกลับสู่ระบบเร็วขึ้น</p>
                 </div>
               </div>
               <ul className="mt-4 space-y-2 text-sm text-ink-muted">
@@ -88,5 +79,5 @@ export function NotFoundPage() {
         </Panel>
       </main>
     </div>
-  )
+  );
 }

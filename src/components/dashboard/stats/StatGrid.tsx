@@ -1,6 +1,6 @@
 import { Droplets, Fuel, Scale, Wallet } from 'lucide-react'
 import { StatCard } from './StatCard'
-import { cn } from '../../lib/utils'
+import { cn } from '../../../lib/utils'
 
 const stats = [
   {

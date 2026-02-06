@@ -1,7 +1,7 @@
 import { Cell, Pie, PieChart, ResponsiveContainer } from 'recharts'
-import { ChartContainer, ChartTooltip, type ChartConfig } from '../ui/chart'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { ChartContainer, ChartTooltip, type ChartConfig } from '../../ui/chart'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 type InventoryKey = 'remaining' | 'used'
 

@@ -1,26 +1,40 @@
 import { useEffect, useState, useRef } from "react";
 import axios from "axios";
 import { ChevronLeft, ChevronRight } from "lucide-react";
-import { Breadcrumbs } from "../components/layout/Breadcrumbs";
-import { Sidebar } from "../components/layout/Sidebar";
-import { Topbar } from "../components/layout/Topbar";
-import { Panel } from "../components/ui/panel";
-import { cn } from "../lib/utils";
+import { Breadcrumbs } from "../../components/layout/Breadcrumbs";
+import { Sidebar } from "../../components/layout/Sidebar";
+import { Topbar } from "../../components/layout/Topbar";
+import { Panel } from "../../components/ui/panel";
+import { cn } from "../../lib/utils";
 
 type RecordData = {
-  level: string;
-  percent: number;
-  Signal_Low: number;
-  Signal_High: number;
-  Signal_current: string | number;
-  Tank_High: string;
-  flowrate: string;
-  TimeStamp: string;
+  // Existing fields that might still be useful or present
+  level?: string | number;
+  percent?: number;
+  Signal_Low?: number;
+  Signal_High?: number;
+  Signal_current?: string | number;
+  Tank_High?: string | number;
+  flowrate?: string;
+  TimeStamp?: string;
+
+  // New fields based on requested columns
+  Order?: string;
+  Order_date?: string;
+  Tank_name?: string;
+  Datatime_start?: string;
+  Data_time_stop?: string;
+  Order_number?: string | number;
+  Volume?: string | number;
+  Station?: string;
+
+  // Allow flexible access
+  [key: string]: any;
 };
 
 const ITEMS_PER_PAGE = 10;
 
-export function BatchLogPage() {
+export function BatchInPage() {
   const [sidebarOpen, setSidebarOpen] = useState(true);
   const [records, setRecords] = useState<RecordData[]>([]);
   const [loading, setLoading] = useState(true);
@@ -125,11 +139,11 @@ export function BatchLogPage() {
         <Topbar title="บันทึก Batch" onMenuClick={() => setSidebarOpen((prev) => !prev)} />
 
         <main className="space-y-6 px-6 pb-10 pt-6">
-          <Breadcrumbs items={[{ label: "รายการ" }, { label: "Batch Log" }]} />
+          <Breadcrumbs items={[{ label: "รายการ" }, { label: "Batch_In" }]} />
 
           <Panel>
             <div className="mb-4 flex items-center justify-between">
-              <h2 className="font-display text-lg font-semibold text-ink">ประวัติ Batch การผลิต</h2>
+              <h2 className="font-display text-lg font-semibold text-ink">Batch_In</h2>
               <div className="flex items-center gap-2">
                 <span className="relative flex h-2 w-2">
                   <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75"></span>
@@ -166,41 +180,42 @@ export function BatchLogPage() {
                     <thead className="sticky top-0 bg-brand/5 text-xs uppercase tracking-wide text-ink-muted">
                       <tr>
                         <th className="px-4 py-3 font-semibold">ลำดับ</th>
-                        <th className="px-4 py-3 font-semibold">Level (L)</th>
-                        <th className="px-4 py-3 font-semibold">เปอร์เซ็นต์</th>
-                        <th className="px-4 py-3 font-semibold">Signal Low</th>
-                        <th className="px-4 py-3 font-semibold">Signal High</th>
-                        <th className="px-4 py-3 font-semibold">Signal Current</th>
+                        <th className="px-4 py-3 font-semibold">Order</th>
+                        <th className="px-4 py-3 font-semibold">Order date</th>
+                        <th className="px-4 py-3 font-semibold">Tank name</th>
+                        <th className="px-4 py-3 font-semibold">Datatime start</th>
+                        <th className="px-4 py-3 font-semibold">Data time stop</th>
                         <th className="px-4 py-3 font-semibold">Tank High</th>
-                        <th className="px-4 py-3 font-semibold">อัตราการไหล</th>
-                        <th className="px-4 py-3 font-semibold">เวลาบันทึก</th>
+                        <th className="px-4 py-3 font-semibold">Level (L)</th>
+                        <th className="px-4 py-3 font-semibold">Order number</th>
+                        <th className="px-4 py-3 font-semibold">Volume</th>
+                        <th className="px-4 py-3 font-semibold">Station</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-border/50">
                       {currentRecords.map((record, index) => {
-                        const levelValue = typeof record.level === "string" ? parseFloat(record.level) : record.level || 0;
-                        // π × r² × level(cm) / 1000 = π × 900 × level / 1000 = π × 0.9 × level (liters)
-                        const volumeLiters = Math.PI * 0.9 * levelValue;
-
                         return (
                           <tr key={startIndex + index} className="transition hover:bg-brand/5">
                             <td className="px-4 py-3 text-ink">{startIndex + index + 1}</td>
-                            <td className="px-4 py-3 text-ink">{volumeLiters.toFixed(2)} L</td>
+                            <td className="px-4 py-3 text-ink">{record.TimeStamp ? `TL001 ${record.TimeStamp} :1` : "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Order_date ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Tank_name ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Datatime_start ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Data_time_stop ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Tank_High ?? "-"}</td>
                             <td className="px-4 py-3 text-ink">
-                              {typeof record.percent === "number" ? `${record.percent.toFixed(2)}%` : record.percent}
+                              {(() => {
+                                const val = record.Level ?? record.level;
+                                if (val === null || val === undefined) return "-";
+                                const num = typeof val === "string" ? parseFloat(val) : val;
+                                if (isNaN(num)) return val;
+                                // Convert cm to Liters: π * 0.9 * level
+                                return `${(num * 0.9 * Math.PI).toFixed(2)} `;
+                              })()}
                             </td>
-                            <td className="px-4 py-3 text-ink-muted">{record.Signal_Low}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.Signal_High}</td>
-                            <td className="px-4 py-3 text-ink-muted">
-                              {typeof record.Signal_current === "number"
-                                ? record.Signal_current.toFixed(3)
-                                : typeof record.Signal_current === "string" && !isNaN(Number(record.Signal_current))
-                                  ? Number(record.Signal_current).toFixed(3)
-                                  : record.Signal_current}
-                            </td>
-                            <td className="px-4 py-3 text-ink-muted">{record.Tank_High}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.flowrate}</td>
-                            <td className="px-4 py-3 text-ink-muted">{record.TimeStamp}</td>
+                            <td className="px-4 py-3 text-ink">{record.Order_number ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Volume ?? "-"}</td>
+                            <td className="px-4 py-3 text-ink">{record.Station ?? "-"}</td>
                           </tr>
                         );
                       })}

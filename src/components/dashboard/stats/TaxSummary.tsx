@@ -1,6 +1,6 @@
 import { CalendarCheck, Coins, Receipt } from 'lucide-react'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 export type TaxSummaryProps = {
   className?: string

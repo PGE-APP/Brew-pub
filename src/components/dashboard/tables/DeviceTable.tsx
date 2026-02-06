@@ -1,6 +1,6 @@
 import { AlertTriangle, CheckCircle2 } from 'lucide-react'
-import { Panel } from '../ui/panel'
-import { cn } from '../../lib/utils'
+import { Panel } from '../../ui/panel'
+import { cn } from '../../../lib/utils'
 
 const devices = [
   { id: 'A1', name: 'เซ็นเซอร์1', status: 'ปกติ', variant: 'success' },
